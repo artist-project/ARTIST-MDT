@@ -609,9 +609,22 @@ helper context JAVA!AbstractMethodDeclaration def: getAbsMethDecVisibility : JAV
 -----------------
 
 ---Get all constructors and methods
+--helper context JAVA!Model def: allAbstractMethodDeclaration : Sequence(JAVA!AbstractMethodDeclaration) = 
+--	JAVA!AbstractMethodDeclaration.allInstancesFrom('IN')	
+--		-> select(amd | amd.notInAnnotation 
+--						and (
+--							 	if amd.oclIsKindOf(JAVA!UnresolvedMethodDeclaration)then
+--								 	not amd.getCorrespondingDec.oclIsKindOf(JAVA!MethodDeclaration)
+--								else true endif	
+--							)	
+--		)
+--;
+--V3
 helper context JAVA!Model def: allAbstractMethodDeclaration : Sequence(JAVA!AbstractMethodDeclaration) = 
 	JAVA!AbstractMethodDeclaration.allInstancesFrom('IN')	
-		-> select(amd | amd.notInAnnotation 
+		-> select(amd | amd.notInAnnotation
+						and amd.notInClassInstanceCreation --MODIF
+						and amd.notInEnumDeclaration --MODIF
 						and (
 							 	if amd.oclIsKindOf(JAVA!UnresolvedMethodDeclaration)then
 								 	not amd.getCorrespondingDec.oclIsKindOf(JAVA!MethodDeclaration)
@@ -619,7 +632,6 @@ helper context JAVA!Model def: allAbstractMethodDeclaration : Sequence(JAVA!Abst
 							)	
 		)
 ;
-
 helper def: allMethods : Sequence(JAVA!MethodDeclaration) = 
 	JAVA!MethodDeclaration.allInstancesFrom('IN');
 
@@ -961,7 +973,6 @@ helper context OclAny def : notInEnumDeclaration : Boolean =
 		endif
 	endif
 ;
-
 helper context JAVA!ASTNode def : notInInitializerOrFieldOrEnum : Boolean = 
 	if self.refImmediateComposite().oclIsKindOf(JAVA!ClassDeclaration) then
 		true
